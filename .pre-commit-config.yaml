@@ -1,0 +1,55 @@
+default_install_hook_types: [pre-commit, pre-push]
+
+# Hooks without an explicit stage run before commits.
+default_stages: [pre-commit]
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-added-large-files
+      - id: check-merge-conflict
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.7
+    hooks:
+      - id: ruff-check
+        args: [ --fix ]
+
+      - id: ruff-format
+
+  - repo: local
+    hooks:
+      - id: check-translations
+        name: Check translations
+        entry: uv run python pre-commit-hooks/check-translations.py
+        language: system
+        files: \.po$
+
+      - id: mypy
+        name: MyPy
+        entry: uv run mypy
+        language: system
+        pass_filenames: false
+
+      - id: django-check
+        name: Django checks
+        entry: uv run python manage.py check
+        language: system
+        pass_filenames: false
+
+      - id: migrations-check
+        name: Check migrations
+        entry: uv run python manage.py makemigrations --check --dry-run
+        language: system
+        pass_filenames: false
+
+      - id: tests
+        name: Django tests
+        entry: env DJANGO_ENV=test uv run python manage.py test
+        language: system
+        pass_filenames: false
+        stages: [ pre-push ]

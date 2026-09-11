@@ -1,5 +1,7 @@
 name: CI
 
+run-name: "CI • ${{ github.ref_name }} • #${{ github.run_number }}"
+
 on:
   push:
     branches: ["main"]
@@ -9,9 +11,17 @@ on:
 permissions:
   contents: read
 
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref_name }}
+  cancel-in-progress: true
+
 jobs:
   ci:
     runs-on: ubuntu-latest
+
+    env:
+      DJANGO_ENV: dev
 
     steps:
       - name: Checkout repository
@@ -25,17 +35,13 @@ jobs:
       - name: Install dependencies
         run: uv sync --locked --dev
 
-      - name: Lint
-        run: uv run ruff check --output-format=github .
-
-      - name: Check formatting
-        run: uv run ruff format --check .
-
-      - name: Type check
-        run: uv run mypy
-
       - name: Django checks
         run: uv run python manage.py check
 
+      - name: Check migrations
+        run: uv run python manage.py makemigrations --check --dry-run
+
       - name: Run tests
+        env:
+          DJANGO_ENV: test
         run: uv run python manage.py test
