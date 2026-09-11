@@ -9,6 +9,9 @@ repos:
     hooks:
       - id: check-yaml
 
+      - id: check-toml
+        stages: [pre-commit]
+
       - id: end-of-file-fixer
         stages: [pre-commit]
 
@@ -59,4 +62,4 @@ repos:
         entry: env DJANGO_ENV=test uv run python manage.py test
         language: system
         pass_filenames: false
-        stages: [ pre-push ]
+        stages: [pre-push]
